@@ -37,7 +37,3 @@ Focus on progressing, not on figuring out *what* to progress next.
 
 * IDEA
   * A way to select a primary or focus goal that would add a star to that goal and all prereqs and their prereqs and so on.
-
-# Dev Road Map
-- Quick add task and active task list
-- Checking a task adds it to incomplete list.
