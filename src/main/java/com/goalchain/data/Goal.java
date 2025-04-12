@@ -5,30 +5,40 @@ import lombok.Setter;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
-@Getter
 public class Goal {
-    public String text;
-    public List<String> prerequisiteIds;
-    public boolean isPriority;
     @Setter
-    public boolean completed;
+    @Getter
+    private String text;
+    @Getter
+    private final String id;
+    @Getter
+    private List<String> prerequisiteIds;
+    @Setter
+    @Getter
+    private boolean prioritized;
+    @Getter
+    @Setter
+    private boolean completed;
 
     public Goal(String text) {
+        this.id = UUID.randomUUID().toString();
         this.text = text;
         this.prerequisiteIds = new ArrayList<>();
-        this.isPriority = false;
+        this.prioritized = false;
         this.completed = false;
     }
 
     public Goal(String text, List<String> prerequisiteIds) {
+        this.id = UUID.randomUUID().toString();
         this.text = text;
         this.prerequisiteIds = prerequisiteIds;
-        this.isPriority = false;
+        this.prioritized = false;
         this.completed = false;
     }
 
-    public boolean isActive() {
-        return prerequisiteIds.isEmpty();
+    public void addPrereq(String prereqId) {
+        this.prerequisiteIds.add(prereqId);
     }
 }

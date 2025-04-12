@@ -4,16 +4,26 @@ import net.runelite.client.config.Config;
 import net.runelite.client.config.ConfigGroup;
 import net.runelite.client.config.ConfigItem;
 
-@ConfigGroup("example")
+@ConfigGroup("goalchain")
 public interface GoalChainConfig extends Config
 {
 	@ConfigItem(
-		keyName = "greeting",
-		name = "Welcome Greeting",
-		description = "The message to show to the user when they login"
+			keyName = "goalMapData", // Key for storing the data
+			name = "Goal Data (JSON)", // Name displayed in settings
+			description = "Serialized data of the goals. Do not edit manually unless you know what you are doing.",
+			position = 2, // Optional: Define order
+			hidden = false // Keep it visible as requested
 	)
-	default String greeting()
+	default String goalMapData()
 	{
-		return "Hello";
+		return "{}"; // Default to an empty JSON object string
 	}
+
+	@ConfigItem(
+			keyName = "goalMapData",
+			name = "",
+			description = "",
+			hidden = true
+	)
+	void setGoalMapData(String data);
 }

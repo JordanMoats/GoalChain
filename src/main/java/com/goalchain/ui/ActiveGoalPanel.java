@@ -14,7 +14,11 @@ public class ActiveGoalPanel extends JPanel {
     final BufferedImage icon1 = ImageUtil.loadImageResource(getClass(), "/reset.png");
     final BufferedImage icon2 = ImageUtil.loadImageResource(getClass(), "/reset.png");
 
+    private final GoalManager goalManager;
+
     public ActiveGoalPanel(Goal goal, GoalManager goalManager, Runnable refreshCallback) {
+        this.goalManager = goalManager;
+
         setLayout(new BorderLayout(5, 0)); // Add some horizontal gap
         // Add some padding inside the panel itself for better spacing
         setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
@@ -24,7 +28,6 @@ public class ActiveGoalPanel extends JPanel {
         checkBox.setSelected(goal.isCompleted());
         checkBox.setToolTipText("Mark as completed");
         add(checkBox, BorderLayout.WEST);
-
 
         // Goal text in the center
         JLabel goalTextLabel = new JLabel(goal.getText());
