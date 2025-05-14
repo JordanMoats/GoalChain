@@ -2,6 +2,7 @@ package com.goalchain.ui;
 
 import com.goalchain.data.Goal;
 import com.goalchain.data.GoalManager;
+import lombok.extern.slf4j.Slf4j;
 import net.runelite.client.ui.ColorScheme;
 import net.runelite.client.ui.FontManager;
 import net.runelite.client.util.ImageUtil;
@@ -13,12 +14,13 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.image.BufferedImage;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-public class ActiveGoalPanel extends JPanel {
+@Slf4j
+public class InactiveGoalPanel extends JPanel {
+
     private final Goal goal;
     private final GoalManager goalManager;
     private final Runnable refreshCallback;
@@ -37,9 +39,9 @@ public class ActiveGoalPanel extends JPanel {
     private static final String TEXTFIELD_VIEW = "TEXTFIELD_VIEW";
 
     // Icons (assuming they exist in the classpath relative to this class)
-    private static final ImageIcon EDIT_ICON = new ImageIcon(ImageUtil.resizeImage(Objects.requireNonNull(ImageUtil.loadImageResource(ActiveGoalPanel.class, "/pencil.png")), 16, 16));
-    private static final ImageIcon SAVE_ICON = new ImageIcon(ImageUtil.resizeImage(Objects.requireNonNull(ImageUtil.loadImageResource(ActiveGoalPanel.class, "/green-tick.png")), 16, 16));
-    private static final ImageIcon CANCEL_ICON = new ImageIcon(ImageUtil.resizeImage(Objects.requireNonNull(ImageUtil.loadImageResource(ActiveGoalPanel.class, "/grey-cross.png")), 16, 16));
+    private static final ImageIcon EDIT_ICON = new ImageIcon(ImageUtil.resizeImage(Objects.requireNonNull(ImageUtil.loadImageResource(InactiveGoalPanel.class, "/pencil.png")), 16, 16));
+    private static final ImageIcon SAVE_ICON = new ImageIcon(ImageUtil.resizeImage(Objects.requireNonNull(ImageUtil.loadImageResource(InactiveGoalPanel.class, "/green-tick.png")), 16, 16));
+    private static final ImageIcon CANCEL_ICON = new ImageIcon(ImageUtil.resizeImage(Objects.requireNonNull(ImageUtil.loadImageResource(InactiveGoalPanel.class, "/grey-cross.png")), 16, 16));
 
     // Font sizes for dynamic adjustment
     private static final float DEFAULT_FONT_SIZE = 14f; // Assuming base size is 12, +2 = 14
@@ -48,19 +50,14 @@ public class ActiveGoalPanel extends JPanel {
     private JLabel prereqCountLabel;
     private JLabel dependentCountLabel;
 
-    public ActiveGoalPanel(Goal goal, GoalManager goalManager, Runnable refreshCallback) {
+    public InactiveGoalPanel(Goal goal, GoalManager goalManager, Runnable refreshCallback) {
         this.goal = goal;
         this.goalManager = goalManager;
         this.refreshCallback = refreshCallback;
 
         setLayout(new BorderLayout(5, 5));
         setBorder(new EmptyBorder(5, 5, 5, 5));
-
-        // --- Left Side: Checkbox ---
-        JCheckBox checkBox = new JCheckBox();
-        checkBox.setSelected(goal.isCompleted());
-        checkBox.setToolTipText("Mark as completed/incomplete");
-        add(checkBox, BorderLayout.WEST);
+        setBackground(ColorScheme.DARKER_GRAY_HOVER_COLOR);
 
         // --- Center: Goal Text (Label/TextField) ---
         cardLayout = new CardLayout();
@@ -68,7 +65,8 @@ public class ActiveGoalPanel extends JPanel {
         centerPanel.setOpaque(false); // Match background
 
         goalTextLabel = new JLabel(goal.getText());
-        goalTextLabel.setToolTipText(goal.getText()); // Show full text on hover
+        // Use lighter gray for better contrast on darker inactive background
+        goalTextLabel.setForeground(ColorScheme.LIGHT_GRAY_COLOR);
         Font currentFont = goalTextLabel.getFont();
         goalTextLabel.setFont(currentFont.deriveFont(DEFAULT_FONT_SIZE));
         goalTextLabel.setVerticalAlignment(SwingConstants.CENTER);
@@ -77,8 +75,10 @@ public class ActiveGoalPanel extends JPanel {
         goalEditTextField = new JTextField(goal.getText());
         goalEditTextField.setFont(currentFont.deriveFont(DEFAULT_FONT_SIZE));
         goalEditTextField.setBorder(BorderFactory.createCompoundBorder(
-            goalEditTextField.getBorder(),
-            BorderFactory.createEmptyBorder(0, 2, 0, 0))); // Small left padding
+                goalEditTextField.getBorder(),
+                BorderFactory.createEmptyBorder(0, 2, 0, 0))); // Small left padding
+        // Potentially style the text field differently for inactive?
+        // goalEditTextField.setForeground(ColorScheme.LIGHT_GRAY_COLOR.darker());
 
         centerPanel.add(goalTextLabel, LABEL_VIEW);
         centerPanel.add(goalEditTextField, TEXTFIELD_VIEW);
@@ -132,12 +132,6 @@ public class ActiveGoalPanel extends JPanel {
         // Show label view initially
         cardLayout.show(centerPanel, LABEL_VIEW);
 
-        // --- Actions ---
-        checkBox.addActionListener(e -> {
-            goalManager.updateGoalCompletion(goal, checkBox.isSelected());
-            refreshCallback.run();
-        });
-
         // Add Context Menu listener (remains the same)
         MouseAdapter contextMenuListener = new MouseAdapter() {
             @Override
@@ -147,15 +141,12 @@ public class ActiveGoalPanel extends JPanel {
                 }
             }
         };
-        // Apply context menu listener to relevant components
         addMouseListener(contextMenuListener);
         goalTextLabel.addMouseListener(contextMenuListener);
-        // goalEditTextField probably shouldn't have the main context menu?
         countPanel.addMouseListener(contextMenuListener);
-        actionPanel.addMouseListener(contextMenuListener); // Maybe context menu on action icons? Or just panel bg?
+        actionPanel.addMouseListener(contextMenuListener);
 
         // --- Size Constraint ---
-        // Allow horizontal stretching, fix height
         setMaximumSize(new Dimension(Integer.MAX_VALUE, getPreferredSize().height));
 
         // ADD EDITING LISTENERS (to be done in next step)
@@ -168,7 +159,7 @@ public class ActiveGoalPanel extends JPanel {
     // ADD showEditMode() and showDisplayMode() methods (to be done in next step)
     private void showEditMode() {
         cardLayout.show(centerPanel, TEXTFIELD_VIEW);
-        goalEditTextField.setText(goal.getText()); // Reset text field to current goal text
+        goalEditTextField.setText(goal.getText());
 
         actionPanel.remove(editButton);
         actionPanel.add(saveButton);
@@ -176,7 +167,6 @@ public class ActiveGoalPanel extends JPanel {
         actionPanel.revalidate();
         actionPanel.repaint();
 
-        // Request focus after components are shown
         SwingUtilities.invokeLater(() -> {
             goalEditTextField.requestFocusInWindow();
             goalEditTextField.selectAll();
@@ -186,7 +176,7 @@ public class ActiveGoalPanel extends JPanel {
     private void showDisplayMode() {
         cardLayout.show(centerPanel, LABEL_VIEW);
         goalTextLabel.setText(goal.getText());
-        goalTextLabel.setToolTipText(goal.getText());
+        // Inactive panel tooltip is set in updateRelationCounts, no need to set here
         adjustLabelFont(); // Adjust font when showing label
 
         actionPanel.remove(saveButton);
@@ -199,29 +189,22 @@ public class ActiveGoalPanel extends JPanel {
     private void saveChanges() {
         String newText = goalEditTextField.getText().trim();
         if (!newText.isEmpty() && !newText.equals(goal.getText())) {
-            // goalManager.updateGoalText(goal, newText); // Assumes this method exists - COMMENTED OUT UNTIL IMPLEMENTED
-            // refreshCallback() will likely update the label text via GoalManager update
-            // but call showDisplayMode first for immediate visual feedback
+            // goalManager.updateGoalText(goal, newText); // COMMENTED OUT UNTIL IMPLEMENTED
             showDisplayMode();
-            // TODO: Uncomment refreshCallback() once goalManager.updateGoalText is implemented and actually changes data
+            // TODO: Uncomment refreshCallback() once goalManager.updateGoalText is implemented
             // refreshCallback.run();
         } else {
-            // If text is empty or unchanged, just cancel
             showDisplayMode();
         }
     }
 
     private void addEditingListeners() {
-        // Edit button click
         editButton.addActionListener(e -> showEditMode());
 
-        // Save button click
         saveButton.addActionListener(e -> saveChanges());
 
-        // Cancel button click
         cancelButton.addActionListener(e -> showDisplayMode());
 
-        // TextField Enter/Escape keys
         goalEditTextField.addKeyListener(new KeyAdapter() {
             @Override
             public void keyPressed(KeyEvent e) {
@@ -234,45 +217,42 @@ public class ActiveGoalPanel extends JPanel {
         });
     }
 
-    // Helper method to style icon buttons
-    private void styleIconButton(JButton button) {
-        button.setBorderPainted(false);
-        button.setContentAreaFilled(false);
-        button.setFocusPainted(false);
-        button.setOpaque(false);
-        button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        // Optional: Adjust margins if needed
-        // button.setMargin(new Insets(0, 0, 0, 0));
-    }
-
     private void updateRelationCounts() {
-        int prereqCount = goal.getPrerequisiteIds() != null ? goal.getPrerequisiteIds().size() : 0;
+        List<Goal> prerequisites = goalManager.getPrerequisiteGoals(goal);
+        int prereqCount = prerequisites.size();
         int dependentCount = goal.getDependentIds() != null ? goal.getDependentIds().size() : 0;
 
+        // Set the label text (unchanged)
         prereqCountLabel.setText(prereqCount > 0 ? "[P:" + prereqCount + "]" : "");
-        prereqCountLabel.setToolTipText(prereqCount + " prerequisite(s)");
         dependentCountLabel.setText(dependentCount > 0 ? "[D:" + dependentCount + "]" : "");
-        dependentCountLabel.setToolTipText(dependentCount + " dependent(s)");
 
-        // Optionally revalidate/repaint if needed, though usually handled by parent refresh
-        // revalidate();
-        // repaint();
+        // --- Set Tooltip for the entire panel --- 
+        String panelTooltipText;
+        if (prereqCount > 0 && prereqCount < 6) {
+            StringBuilder tooltipBuilder = new StringBuilder("<html>");
+            tooltipBuilder.append(goal.getText()).append(" (Inactive)<br/>"); // Add goal text first
+            tooltipBuilder.append("Prerequisites:<br/>");
+            for (Goal prereq : prerequisites) {
+                tooltipBuilder.append("- ").append(prereq.getText()).append("<br/>");
+            }
+            tooltipBuilder.append("</html>");
+            panelTooltipText = tooltipBuilder.toString();
+        } else if (prereqCount >= 6) {
+            panelTooltipText = goal.getText() + " (Inactive - " + prereqCount + " prerequisites not met)";
+        } else { // 0 prerequisites
+            panelTooltipText = goal.getText() + " (Inactive - prerequisites not met)"; // Default inactive text
+        }
+        this.setToolTipText(panelTooltipText);
+
+        // Clear tooltips from individual labels as they are now on the panel
+        prereqCountLabel.setToolTipText(null);
+        dependentCountLabel.setToolTipText(null);
     }
 
     private void showContextMenu(Component invoker, int x, int y) {
         JPopupMenu contextMenu = new JPopupMenu();
 
-        // -- Mark Complete/Incomplete --
-        JMenuItem toggleCompleteItem = new JMenuItem(goal.isCompleted() ? "Mark as Incomplete" : "Mark as Complete");
-        toggleCompleteItem.addActionListener(e -> {
-            goalManager.updateGoalCompletion(goal, !goal.isCompleted());
-            refreshCallback.run();
-        });
-        contextMenu.add(toggleCompleteItem);
-
-        contextMenu.addSeparator();
-
-        // -- Add Prerequisite --
+        // -- Add Prerequisite -- (Still allow adding, even if inactive)
         JMenuItem addPrereqItem = new JMenuItem("Add Prerequisite...");
         addPrereqItem.addActionListener(e -> showAddPrerequisiteDialog());
         contextMenu.add(addPrereqItem);
@@ -313,10 +293,6 @@ public class ActiveGoalPanel extends JPanel {
             contextMenu.add(removeDependentMenu);
         }
 
-        // --- Optional: View/Remove Relationships --- (Could be added later)
-        // JMenuItem viewPrereqsItem = new JMenuItem("View Prerequisites");
-        // JMenuItem viewDependentsItem = new JMenuItem("View Dependents");
-
         contextMenu.addSeparator();
 
         // -- Delete Goal --
@@ -324,11 +300,11 @@ public class ActiveGoalPanel extends JPanel {
         deleteItem.setForeground(Color.RED);
         deleteItem.addActionListener(e -> {
             int confirm = JOptionPane.showConfirmDialog(
-                this,
-                "Are you sure you want to delete the goal: \"" + goal.getText() + "\"?",
-                "Confirm Deletion",
-                JOptionPane.YES_NO_OPTION,
-                JOptionPane.WARNING_MESSAGE);
+                    this,
+                    "Are you sure you want to delete the goal: \"" + goal.getText() + "\"?",
+                    "Confirm Deletion",
+                    JOptionPane.YES_NO_OPTION,
+                    JOptionPane.WARNING_MESSAGE);
             if (confirm == JOptionPane.YES_OPTION) {
                 goalManager.deleteGoal(goal);
                 refreshCallback.run();
@@ -336,16 +312,16 @@ public class ActiveGoalPanel extends JPanel {
         });
         contextMenu.add(deleteItem);
 
-
         contextMenu.show(invoker, x, y);
     }
 
-    // --- Dialog Logic (extracted from old button actions) ---
+    // --- Dialog Logic (Copied from ActiveGoalPanel, potentially refactor later) ---
 
     private void showAddPrerequisiteDialog() {
+        // Or keep same logic: only non-completed, non-self, non-cycle
         List<Goal> potentialPrereqs = goalManager.getGoalMap().values().stream()
                 .filter(p -> !p.getId().equals(goal.getId())) // Exclude self
-                //.filter(p -> !p.isCompleted()) // Keep allowing completed?
+                //.filter(p -> !p.isCompleted()) // Maybe allow completed?
                 .filter(p -> goal.getPrerequisiteIds() == null || !goal.getPrerequisiteIds().contains(p.getId())) // Exclude already added
                 .filter(p -> p.getPrerequisiteIds() == null || !p.getPrerequisiteIds().contains(goal.getId())) // Basic cycle check
                 .collect(Collectors.toList());
@@ -414,22 +390,19 @@ public class ActiveGoalPanel extends JPanel {
             } else { // Create New
                 String newGoalText = newGoalTextField.getText().trim();
                 if (!newGoalText.isEmpty()) {
-                    // Need a way to get the newly created goal object back from GoalManager
-                    // For now, let's assume quickAddGoal can be modified or we add a new method
-                    prereqToAdd = goalManager.quickAddGoalAndGet(newGoalText); // Hypothetical method
+                    prereqToAdd = goalManager.quickAddGoalAndGet(newGoalText); 
                     if (prereqToAdd == null) {
                          JOptionPane.showMessageDialog(this, "Failed to create new goal.", "Error", JOptionPane.ERROR_MESSAGE);
-                         return; // Stop if goal creation failed
+                         return; 
                     }
                 } else {
                     JOptionPane.showMessageDialog(this, "New goal text cannot be empty.", "Input Error", JOptionPane.WARNING_MESSAGE);
-                    return; // Don't proceed if text is empty
+                    return; 
                 }
             }
 
             // --- Set Prerequisite --- 
             if (prereqToAdd != null) {
-                 // Ensure it's not the same goal again (double-check)
                 if (prereqToAdd.getId().equals(goal.getId())) {
                      JOptionPane.showMessageDialog(this, "Cannot set a goal as its own prerequisite.", "Error", JOptionPane.ERROR_MESSAGE);
                      return;
@@ -445,7 +418,7 @@ public class ActiveGoalPanel extends JPanel {
     private void showAddDependentDialog() {
         List<Goal> potentialDependents = goalManager.getGoalMap().values().stream()
                 .filter(d -> !d.getId().equals(goal.getId())) // Exclude self
-                // .filter(d -> !d.isCompleted()) // Allow depending on completed?
+                //.filter(d -> !d.isCompleted()) // Maybe allow depending on completed?
                 .filter(d -> d.getPrerequisiteIds() == null || !d.getPrerequisiteIds().contains(goal.getId())) // Exclude already dependent
                 .filter(d -> goal.getPrerequisiteIds() == null || !goal.getPrerequisiteIds().contains(d.getId())) // Basic cycle check
                 .collect(Collectors.toList());
@@ -527,17 +500,27 @@ public class ActiveGoalPanel extends JPanel {
 
             // --- Set Dependent (Set Prerequisite with current goal as prereq) --- 
             if (dependentToAdd != null) {
-                // Ensure it's not the same goal again (double-check)
                 if (dependentToAdd.getId().equals(goal.getId())) {
                      JOptionPane.showMessageDialog(this, "Cannot set a goal as its own dependent.", "Error", JOptionPane.ERROR_MESSAGE);
                      return;
                 }
                 goalManager.setPrereq(goal, dependentToAdd); // Current goal is the prerequisite
                 refreshCallback.run();
-            } else if (selectExistingRadio.isSelected()) {
+            } else if (selectExistingRadio.isSelected()){
                 JOptionPane.showMessageDialog(this, "No dependent goal selected.", "Selection Error", JOptionPane.WARNING_MESSAGE);
             }
         }
+    }
+
+    // Helper method to style icon buttons
+    private void styleIconButton(JButton button) {
+        button.setBorderPainted(false);
+        button.setContentAreaFilled(false);
+        button.setFocusPainted(false);
+        button.setOpaque(false);
+        button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        // Optional: Adjust margins if needed
+        // button.setMargin(new Insets(0, 0, 0, 0));
     }
 
     private void adjustLabelFont() {
@@ -567,4 +550,4 @@ public class ActiveGoalPanel extends JPanel {
         // Set the determined font
         goalTextLabel.setFont(currentFont);
     }
-}
+} 

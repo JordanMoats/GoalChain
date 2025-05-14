@@ -37,6 +37,16 @@ public class GoalManager {
         log.debug("Added goal: {}", newGoal.getId());
     }
 
+    // New method to add a goal and return it
+    public Goal quickAddGoalAndGet(String s) {
+        log.debug("Quick adding goal and returning: {}", s);
+        Goal newGoal = new Goal(s);
+        goalMap.put(newGoal.getId(), newGoal);
+        notifyDataChanged();
+        log.debug("Added goal: {}", newGoal.getId());
+        return newGoal;
+    }
+
     public void updateGoalCompletion(Goal goal, boolean isCompleted) {
         Goal managedGoal = goalMap.get(goal.getId());
         if (managedGoal != null) {
@@ -89,23 +99,70 @@ public class GoalManager {
     }
 
     public void setPrereq(Goal prereqGoal, Goal dependentGoal) {
-        if (prereqGoal != null && dependentGoal != null) {
+        if (prereqGoal != null && dependentGoal != null && !prereqGoal.getId().equals(dependentGoal.getId())) {
+            // Check for cycles (basic): don't add if dependentGoal is already a prereq for prereqGoal
+            if (prereqGoal.getPrerequisiteIds().contains(dependentGoal.getId())) {
+                log.warn("Attempted to create circular dependency: {} <-> {}", prereqGoal.getId(), dependentGoal.getId());
+                // Optionally show a message to the user here
+                return;
+            }
+            // Add prereq to the dependent goal
             dependentGoal.addPrereq(prereqGoal.getId());
+            // Add dependent to the prerequisite goal
+            prereqGoal.addDependent(dependentGoal.getId());
             notifyDataChanged();
-            log.debug("Set prereq: {} -> {}", prereqGoal.getId(), dependentGoal.getId());
+            log.debug("Set relationship: {} is prerequisite for {}", prereqGoal.getId(), dependentGoal.getId());
         } else {
-            log.warn("Attempted to set prereq with null goal(s)");
+            log.warn("Attempted to set prereq with null or identical goal(s)");
         }
+    }
+
+    // Add method to remove a prerequisite relationship
+    public void removePrereq(Goal prereqGoal, Goal dependentGoal) {
+        if (prereqGoal != null && dependentGoal != null) {
+            dependentGoal.removePrereq(prereqGoal.getId());
+            prereqGoal.removeDependent(dependentGoal.getId());
+            notifyDataChanged();
+            log.debug("Removed relationship: {} is no longer prerequisite for {}", prereqGoal.getId(), dependentGoal.getId());
+        } else {
+            log.warn("Attempted to remove prereq with null goal(s)");
+        }
+    }
+
+    // Helper to get Goal objects from IDs
+    private List<Goal> getGoalsByIds(List<String> ids) {
+        if (ids == null) {
+            return new ArrayList<>();
+        }
+        return ids.stream()
+                .map(goalMap::get)
+                .filter(java.util.Objects::nonNull)
+                .collect(Collectors.toList());
+    }
+
+    // Get prerequisite goals for a given goal
+    public List<Goal> getPrerequisiteGoals(Goal goal) {
+        return getGoalsByIds(goal.getPrerequisiteIds());
+    }
+
+    // Get dependent goals for a given goal
+    public List<Goal> getDependentGoals(Goal goal) {
+        return getGoalsByIds(goal.getDependentIds());
     }
 
     public void deleteGoal(Goal goal) {
         if (goal != null && goalMap.containsKey(goal.getId())) {
-            goalMap.remove(goal.getId());
+            String goalId = goal.getId();
+            goalMap.remove(goalId);
 
-            // Remove this goal from the prereqs of all other goals.
-            goalMap.values().forEach(g -> g.getPrerequisiteIds().remove(goal.getId()));
+            // Remove this goal from the prereqs list of its dependents
+            getDependentGoals(goal).forEach(dependent -> dependent.removePrereq(goalId));
+
+            // Remove this goal from the dependents list of its prerequisites
+            getPrerequisiteGoals(goal).forEach(prereq -> prereq.removeDependent(goalId));
+
             notifyDataChanged();
-            log.debug("Deleted goal: {}", goal.getId());
+            log.debug("Deleted goal: {}", goalId);
         }
     }
 }

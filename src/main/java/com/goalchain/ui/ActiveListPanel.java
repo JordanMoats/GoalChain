@@ -17,6 +17,39 @@ public class ActiveListPanel extends JPanel
     private final GoalManager goalManager; // Store GoalManager
     private final Runnable refreshCallback; // Store refresh callback
 
+    // Private static inner class that handles scrolling behavior
+    private static class ScrollableGoalContainer extends JPanel implements Scrollable {
+        @Override
+        public Dimension getPreferredScrollableViewportSize() {
+            return getPreferredSize();
+        }
+
+        @Override
+        public int getScrollableUnitIncrement(Rectangle visibleRect, int orientation, int direction) {
+            return 16; // Standard unit scroll increment
+        }
+
+        @Override
+        public int getScrollableBlockIncrement(Rectangle visibleRect, int orientation, int direction) {
+            return 16 * 10; // Standard block scroll increment
+        }
+
+        @Override
+        public boolean getScrollableTracksViewportWidth() {
+            // Force the panel's width to match the viewport's width.
+            // This prevents horizontal scrolling and causes components (like GoalPanels)
+            // to wrap or truncate their content based on the available width.
+            return true;
+        }
+
+        @Override
+        public boolean getScrollableTracksViewportHeight() {
+            // Allow the panel's height to be determined by its content (GoalPanels).
+            // This enables vertical scrolling when the content exceeds the viewport height.
+            return false;
+        }
+    }
+
     // Accept GoalManager and Runnable in constructor
     public ActiveListPanel(GoalManager goalManager, Runnable refreshCallback)
     {
@@ -30,19 +63,22 @@ public class ActiveListPanel extends JPanel
         setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 
         JLabel header = new JLabel("Active Tasks");
-        header.setForeground(Color.WHITE);
+        header.setForeground(Color.LIGHT_GRAY);
         header.setFont(header.getFont().deriveFont(Font.BOLD));
+        header.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
         add(header, BorderLayout.NORTH);
 
-        goalListContainer = new JPanel();
+        // Instantiate the custom scrollable panel
+        goalListContainer = new ScrollableGoalContainer();
         goalListContainer.setLayout(new BoxLayout(goalListContainer, BoxLayout.Y_AXIS));
-        goalListContainer.setBackground(ColorScheme.DARKER_GRAY_COLOR); // Match background
+        goalListContainer.setBackground(ColorScheme.DARKER_GRAY_COLOR);
 
         JScrollPane scrollPane = new JScrollPane(goalListContainer);
-        scrollPane.setBorder(null); // Remove scrollpane border
-        scrollPane.setBackground(ColorScheme.DARKER_GRAY_COLOR); // Match background
-        scrollPane.getVerticalScrollBar().setPreferredSize(new Dimension(8, Integer.MAX_VALUE)); // Slightly wider scrollbar
-        scrollPane.getVerticalScrollBar().setBackground(ColorScheme.DARK_GRAY_COLOR); // Scrollbar background
+        scrollPane.setBorder(null);
+        scrollPane.setBackground(ColorScheme.DARKER_GRAY_COLOR);
+        scrollPane.getViewport().setBackground(ColorScheme.DARKER_GRAY_COLOR);
+        scrollPane.getVerticalScrollBar().setPreferredSize(new Dimension(8, Integer.MAX_VALUE));
+        scrollPane.getVerticalScrollBar().setBackground(ColorScheme.DARK_GRAY_COLOR);
 
         add(scrollPane, BorderLayout.CENTER);
         // --- End Existing Layout Code ---
@@ -56,6 +92,7 @@ public class ActiveListPanel extends JPanel
     {
         log.info("Refreshing ActiveListPanel with {} goals", activeGoals.size());
         goalListContainer.removeAll();
+        goalListContainer.setBackground(ColorScheme.DARKER_GRAY_COLOR);
 
         if (activeGoals.isEmpty()) {
             JLabel emptyLabel = new JLabel("No active tasks");

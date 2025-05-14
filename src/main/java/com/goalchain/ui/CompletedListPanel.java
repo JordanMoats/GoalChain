@@ -17,6 +17,34 @@ public class CompletedListPanel extends JPanel {
     private final GoalManager goalManager;
     private final Runnable refreshCallback;
 
+    // Private static inner class that handles scrolling behavior (copied from ActiveListPanel)
+    private static class ScrollableGoalContainer extends JPanel implements Scrollable {
+        @Override
+        public Dimension getPreferredScrollableViewportSize() {
+            return getPreferredSize();
+        }
+
+        @Override
+        public int getScrollableUnitIncrement(Rectangle visibleRect, int orientation, int direction) {
+            return 16;
+        }
+
+        @Override
+        public int getScrollableBlockIncrement(Rectangle visibleRect, int orientation, int direction) {
+            return 16 * 10;
+        }
+
+        @Override
+        public boolean getScrollableTracksViewportWidth() {
+            return true;
+        }
+
+        @Override
+        public boolean getScrollableTracksViewportHeight() {
+            return false;
+        }
+    }
+
     // Accept GoalManager and Runnable
     public CompletedListPanel(GoalManager goalManager, Runnable refreshCallback) {
         log.info("Building CompletedListPanel");
@@ -29,17 +57,20 @@ public class CompletedListPanel extends JPanel {
         setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 
         JLabel header = new JLabel("Completed Tasks");
-        header.setForeground(Color.WHITE); // White text
+        header.setForeground(Color.LIGHT_GRAY);
         header.setFont(header.getFont().deriveFont(Font.BOLD));
+        header.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
         add(header, BorderLayout.NORTH);
 
-        goalListContainer = new JPanel();
+        // Instantiate the custom scrollable panel
+        goalListContainer = new ScrollableGoalContainer();
         goalListContainer.setLayout(new BoxLayout(goalListContainer, BoxLayout.Y_AXIS));
         goalListContainer.setBackground(ColorScheme.DARKER_GRAY_COLOR);
 
         JScrollPane scrollPane = new JScrollPane(goalListContainer);
         scrollPane.setBorder(null);
         scrollPane.setBackground(ColorScheme.DARKER_GRAY_COLOR);
+        scrollPane.getViewport().setBackground(ColorScheme.DARKER_GRAY_COLOR);
         scrollPane.getVerticalScrollBar().setPreferredSize(new Dimension(8, Integer.MAX_VALUE));
         scrollPane.getVerticalScrollBar().setBackground(ColorScheme.DARK_GRAY_COLOR);
 
@@ -54,6 +85,7 @@ public class CompletedListPanel extends JPanel {
     public void refresh(List<Goal> completedGoals) {
         log.info("Refreshing CompletedListPanel with {} goals", completedGoals.size());
         goalListContainer.removeAll();
+        goalListContainer.setBackground(ColorScheme.DARKER_GRAY_COLOR);
 
         if (completedGoals.isEmpty()) {
             JLabel emptyLabel = new JLabel("No completed tasks");

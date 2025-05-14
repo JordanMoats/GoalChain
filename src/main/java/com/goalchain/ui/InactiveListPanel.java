@@ -19,6 +19,34 @@ public class InactiveListPanel extends JPanel {
     private final GoalManager goalManager; // Store GoalManager (optional, depends if needed here)
     private final Runnable refreshCallback; // Store refresh callback (optional, depends if needed here)
 
+    // Private static inner class that handles scrolling behavior (copied from ActiveListPanel)
+    private static class ScrollableGoalContainer extends JPanel implements Scrollable {
+        @Override
+        public Dimension getPreferredScrollableViewportSize() {
+            return getPreferredSize();
+        }
+
+        @Override
+        public int getScrollableUnitIncrement(Rectangle visibleRect, int orientation, int direction) {
+            return 16;
+        }
+
+        @Override
+        public int getScrollableBlockIncrement(Rectangle visibleRect, int orientation, int direction) {
+            return 16 * 10;
+        }
+
+        @Override
+        public boolean getScrollableTracksViewportWidth() {
+            return true;
+        }
+
+        @Override
+        public boolean getScrollableTracksViewportHeight() {
+            return false;
+        }
+    }
+
     // Accept GoalManager and Runnable, though they might not be directly used
     // by this panel if it's purely display. Still good practice for consistency.
     public InactiveListPanel(GoalManager goalManager, Runnable refreshCallback) {
@@ -33,24 +61,24 @@ public class InactiveListPanel extends JPanel {
 
         // Header
         JLabel header = new JLabel("Inactive / Pending Tasks");
-        header.setForeground(Color.WHITE);
-        header.setFont(FontManager.getRunescapeBoldFont()); // Use consistent bold font
-        // Add a bottom border to the header for separation
-        header.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createMatteBorder(0, 0, 1, 0, ColorScheme.DARK_GRAY_COLOR.brighter()), // Bottom line
-                new EmptyBorder(0, 0, 5, 0) // Padding below the line
-        ));
+        header.setForeground(ColorScheme.LIGHT_GRAY_COLOR); // Less bright color
+        header.setFont(FontManager.getRunescapeBoldFont());
+        // Add consistent padding
+        header.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
         add(header, BorderLayout.NORTH);
 
-        // Container for the goal labels
-        goalListContainer = new JPanel();
+        // Instantiate the custom scrollable panel
+        goalListContainer = new ScrollableGoalContainer();
         goalListContainer.setLayout(new BoxLayout(goalListContainer, BoxLayout.Y_AXIS));
-        goalListContainer.setBackground(ColorScheme.DARKER_GRAY_COLOR); // Match background
+        // Ensure container background is explicitly dark
+        goalListContainer.setBackground(ColorScheme.DARKER_GRAY_COLOR);
 
         // Scroll Pane
         JScrollPane scrollPane = new JScrollPane(goalListContainer);
-        scrollPane.setBorder(null); // No border for the scroll pane itself
+        scrollPane.setBorder(null);
+        // Ensure scroll pane background is explicitly dark
         scrollPane.setBackground(ColorScheme.DARKER_GRAY_COLOR);
+        scrollPane.getViewport().setBackground(ColorScheme.DARKER_GRAY_COLOR); // Also set viewport background
         // Style the scrollbar
         scrollPane.getVerticalScrollBar().setPreferredSize(new Dimension(8, Integer.MAX_VALUE));
         scrollPane.getVerticalScrollBar().setBackground(ColorScheme.DARK_GRAY_COLOR);
@@ -69,6 +97,7 @@ public class InactiveListPanel extends JPanel {
     public void refresh(List<Goal> inactiveGoals) {
         log.info("Refreshing InactiveListPanel with {} goals", inactiveGoals.size());
         goalListContainer.removeAll(); // Clear previous items
+        goalListContainer.setBackground(ColorScheme.DARKER_GRAY_COLOR); // Re-apply background after removeAll if needed
 
         if (inactiveGoals.isEmpty()) {
             // Display a message when the list is empty
@@ -79,23 +108,12 @@ public class InactiveListPanel extends JPanel {
             emptyLabel.setBorder(new EmptyBorder(10, 0, 10, 0));
             goalListContainer.add(emptyLabel);
         } else {
-            // Add labels for each inactive goal
+            // Add an InactiveGoalPanel for each inactive goal
             for (Goal goal : inactiveGoals) {
-                JPanel goalPanel = new JPanel(new BorderLayout()); // Use a panel for each goal for better spacing/borders
-                goalPanel.setBackground(ColorScheme.DARKER_GRAY_COLOR);
-                goalPanel.setBorder(new EmptyBorder(2, 5, 2, 5)); // Padding within the goal item
-
-                JLabel goalLabel = new JLabel(goal.getText());
-                goalLabel.setForeground(ColorScheme.LIGHT_GRAY_COLOR); // Slightly dimmer text for inactive
-                goalLabel.setToolTipText(goal.getText() + " (Inactive - Prerequisites not met)");
-                // Optional: Add indication of prerequisites if needed
-                // goalLabel.setText(goal.getText() + " (Requires: " + String.join(", ", goal.getPrerequisiteIds()) + ")");
-
-                goalPanel.add(goalLabel, BorderLayout.CENTER);
-                // Optional: Add icons or buttons if needed later
-
+                // Create the specific panel for inactive goals
+                InactiveGoalPanel goalPanel = new InactiveGoalPanel(goal, goalManager, refreshCallback);
                 goalListContainer.add(goalPanel);
-                // goalListContainer.add(Box.createVerticalStrut(1)); // Minimal spacing between items
+                // goalListContainer.add(Box.createVerticalStrut(1)); // Optional spacing
             }
         }
 
