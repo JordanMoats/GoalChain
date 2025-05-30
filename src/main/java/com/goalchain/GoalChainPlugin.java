@@ -60,6 +60,7 @@ public class GoalChainPlugin extends Plugin
         GoalChainPluginPanel panel = new GoalChainPluginPanel(goalManager);
 
 		// Create the sidebar button
+		// todo get real icon
 		final BufferedImage icon = ImageUtil.loadImageResource(getClass(), "/reset.png");
 		navButton = NavigationButton.builder()
 			.tooltip("Goal Chain")
