@@ -414,7 +414,7 @@ public class ActiveGoalPanel extends JPanel {
                 if (!newGoalText.isEmpty()) {
                     // Need a way to get the newly created goal object back from GoalManager
                     // For now, let's assume quickAddGoal can be modified or we add a new method
-                    prereqToAdd = goalManager.quickAddGoalAndGet(newGoalText); // Hypothetical method
+                    prereqToAdd = goalManager.quickAddGoalAndGet(newGoalText);
                     if (prereqToAdd == null) {
                          JOptionPane.showMessageDialog(this, "Failed to create new goal.", "Error", JOptionPane.ERROR_MESSAGE);
                          return; // Stop if goal creation failed
