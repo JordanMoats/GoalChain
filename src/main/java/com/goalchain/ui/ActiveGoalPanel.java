@@ -13,7 +13,6 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.image.BufferedImage;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -199,12 +198,11 @@ public class ActiveGoalPanel extends JPanel {
     private void saveChanges() {
         String newText = goalEditTextField.getText().trim();
         if (!newText.isEmpty() && !newText.equals(goal.getText())) {
-            // goalManager.updateGoalText(goal, newText); // Assumes this method exists - COMMENTED OUT UNTIL IMPLEMENTED
+            goalManager.updateGoalText(goal, newText);
             // refreshCallback() will likely update the label text via GoalManager update
             // but call showDisplayMode first for immediate visual feedback
             showDisplayMode();
-            // TODO: Uncomment refreshCallback() once goalManager.updateGoalText is implemented and actually changes data
-            // refreshCallback.run();
+            refreshCallback.run();
         } else {
             // If text is empty or unchanged, just cancel
             showDisplayMode();

@@ -4,7 +4,6 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -54,6 +53,18 @@ public class GoalManager {
             log.debug("Updated goal completeioon: {} to {}", goal.getId(), isCompleted);
         } else {
             log.warn("Attempted to update non-existent goal: {}", goal.getId());
+        }
+    }
+
+    // Changes the text of a goal
+    public void updateGoalText(Goal goal, String newText) {
+        Goal managedGoal = goalMap.get(goal.getId());
+        if (managedGoal != null) {
+            managedGoal.setText(newText);
+            notifyDataChanged();
+            log.debug("Updated text for goal: {} to \"{}\"", goal.getId(), newText);
+        } else {
+            log.warn("Attempted to update text for non-existent goal: {}", goal.getId());
         }
     }
 

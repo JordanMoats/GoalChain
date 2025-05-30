@@ -189,10 +189,9 @@ public class InactiveGoalPanel extends JPanel {
     private void saveChanges() {
         String newText = goalEditTextField.getText().trim();
         if (!newText.isEmpty() && !newText.equals(goal.getText())) {
-            // goalManager.updateGoalText(goal, newText); // COMMENTED OUT UNTIL IMPLEMENTED
+            goalManager.updateGoalText(goal, newText); // COMMENTED OUT UNTIL IMPLEMENTED
             showDisplayMode();
-            // TODO: Uncomment refreshCallback() once goalManager.updateGoalText is implemented
-            // refreshCallback.run();
+            refreshCallback.run();
         } else {
             showDisplayMode();
         }
