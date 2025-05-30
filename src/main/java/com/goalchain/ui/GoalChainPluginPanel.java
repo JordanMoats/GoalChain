@@ -56,6 +56,7 @@ public class GoalChainPluginPanel extends PluginPanel {
 
     private void refreshGoals() {
         // Rebuild Active Goal
+        log.info("Refreshing task lists");
         activeListPanel.refresh(goalManager.getActiveGoals());
         inactivePanel.refresh(goalManager.getInactiveGoals());
         completedPanel.refresh(goalManager.getCompletedGoals());

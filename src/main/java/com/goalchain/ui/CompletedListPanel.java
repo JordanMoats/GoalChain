@@ -83,7 +83,6 @@ public class CompletedListPanel extends JPanel {
 
     // Refresh the list display
     public void refresh(List<Goal> completedGoals) {
-        log.info("Refreshing CompletedListPanel with {} goals", completedGoals.size());
         goalListContainer.removeAll();
         goalListContainer.setBackground(ColorScheme.DARKER_GRAY_COLOR);
 

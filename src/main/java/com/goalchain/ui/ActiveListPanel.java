@@ -90,7 +90,6 @@ public class ActiveListPanel extends JPanel
     // Refresh the list display
     public void refresh(List<Goal> activeGoals)
     {
-        log.info("Refreshing ActiveListPanel with {} goals", activeGoals.size());
         goalListContainer.removeAll();
         goalListContainer.setBackground(ColorScheme.DARKER_GRAY_COLOR);
 

@@ -105,18 +105,14 @@ public class GoalChainPlugin extends Plugin
 	}
 
 	private void saveGoals() {
-		log.info("~Saving goals");
+		log.info("Saving goals");
 		if (goalManager == null) {
 			log.warn("GoalManager not initialized, cannot save goals.");
 			return;
 		}
-		log.info("~Saving goals 1");
 		Map<String, Goal> currentGoals = goalManager.getGoalMap();
-		log.info("~Saving goals 2");
 		String json = gson.toJson(currentGoals);
-		log.info("~Saving goals 3");
 		configManager.setConfiguration(CONFIG_GROUP, "goalMapData", json);
-		log.info("~Saving goals 4");
 		log.debug("Saved {} goals to config.", currentGoals.size());
 	}
 

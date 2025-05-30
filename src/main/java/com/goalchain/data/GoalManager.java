@@ -16,7 +16,6 @@ public class GoalManager {
     private final Runnable dataChangeCallback;
 
     public GoalManager(Map<String, Goal> initialGoalMap, Runnable dataChangeCallback) {
-        // todo figure out read write here
         this.goalMap = initialGoalMap;
         this.dataChangeCallback = dataChangeCallback;
         log.info("GoalManager initialized with  {} goals.", this.goalMap.size());

@@ -95,7 +95,6 @@ public class InactiveListPanel extends JPanel {
 
     // Refresh the list display
     public void refresh(List<Goal> inactiveGoals) {
-        log.info("Refreshing InactiveListPanel with {} goals", inactiveGoals.size());
         goalListContainer.removeAll(); // Clear previous items
         goalListContainer.setBackground(ColorScheme.DARKER_GRAY_COLOR); // Re-apply background after removeAll if needed
 
