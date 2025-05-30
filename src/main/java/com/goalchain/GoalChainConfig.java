@@ -12,7 +12,7 @@ public interface GoalChainConfig extends Config
 			name = "Goal Data (JSON)", // Name displayed in settings
 			description = "Serialized data of the goals. Do not edit manually unless you know what you are doing.",
 			position = 2, // Optional: Define order
-			hidden = false // Keep it visible as requested
+			hidden = true
 	)
 	default String goalMapData()
 	{
