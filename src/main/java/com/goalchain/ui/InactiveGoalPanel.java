@@ -221,11 +221,11 @@ public class InactiveGoalPanel extends JPanel {
         int prereqCount = prerequisites.size();
         int dependentCount = goal.getDependentIds() != null ? goal.getDependentIds().size() : 0;
 
-        // Set the label text (unchanged)
+        // Set the label text
         prereqCountLabel.setText(prereqCount > 0 ? "[P:" + prereqCount + "]" : "");
         dependentCountLabel.setText(dependentCount > 0 ? "[D:" + dependentCount + "]" : "");
 
-        // --- Set Tooltip for the entire panel --- 
+        // Build the tooltip string
         String panelTooltipText;
         if (prereqCount > 0 && prereqCount < 6) {
             StringBuilder tooltipBuilder = new StringBuilder("<html>");
@@ -243,9 +243,11 @@ public class InactiveGoalPanel extends JPanel {
         }
         this.setToolTipText(panelTooltipText);
 
-        // Clear tooltips from individual labels as they are now on the panel
-        prereqCountLabel.setToolTipText(null);
-        dependentCountLabel.setToolTipText(null);
+        // Set the tooltip on the main panel and child components
+        this.setToolTipText(panelTooltipText);
+        this.goalTextLabel.setToolTipText(panelTooltipText);
+        prereqCountLabel.setToolTipText(panelTooltipText);
+        dependentCountLabel.setToolTipText(panelTooltipText);
     }
 
     private void showContextMenu(Component invoker, int x, int y) {
